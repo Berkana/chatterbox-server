@@ -23,6 +23,7 @@ var defaultCorsHeaders = {
   "Content-Type": "application/json" // INSERTION
 };
 
+
 ///////////////////////// Replaced 'var' with 'exports.'
 exports.requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -70,14 +71,23 @@ exports.requestHandler = function(request, response) {
   //response.end(JSON.stringify()); // argument was formerly "Hello, World!"
 
   if(request.method === 'GET'){
+    var splitURL = request.url.split('/');
+    // console.log('splitURL');
     response.end(JSON.stringify(storage.messages));
   } else if (request.method === 'PUT'){
 
   } else if (request.method === 'POST'){
-
+    var msg = '';
+    request.on('data', function(packet){
+      msg+=packet;
+    });
+    request.on('end', function(){
+      response.end(JSON.stringify(msg));
+    });
   } else if (request.method === 'DELETE'){
 
   } else if(request.method === 'OPTIONS'){
+    response.end(JSON.stringify({}))
 
   };
 
