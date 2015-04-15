@@ -30,7 +30,7 @@ $(function() {
       app.$roomSelect.on('change', app.saveRoom);
 
       // Fetch previous messages
-      app.startSpinner();
+      //app.startSpinner();
       app.fetch(false);
 
       // Poll for new messages
@@ -62,7 +62,7 @@ $(function() {
         url: app.server,
         type: 'GET',
         contentType: 'application/json',
-        data: { order: '-createdAt'},
+        //data: { order: '-createdAt'},
         success: function(data) {
           console.log('chatterbox: Messages fetched');
           console.log("success function parameter: ", data);

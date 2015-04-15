@@ -12,15 +12,16 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 //////////////////// OUR STORAGE FILE
-var storage = require("./storage.js");
+var storage = require('./storage.js');
 ////////////////////
+var _ = require('underscore')
 
 var defaultCorsHeaders = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10, // Seconds.
-  "Content-Type": "application/json" // INSERTION
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'content-type, accept',
+  'access-control-max-age': 10, // Seconds.
+  'Content-Type': 'application/json' // INSERTION
 };
 
 
@@ -40,10 +41,14 @@ exports.requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log("Serving request type " + request.method + " for url " + request.url);
+  console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   // The outgoing status.
-  var statusCode = 200;
+  var statusCode = {
+    ok: '200',
+    created: '201',
+    fileNotFound: '404'
+  };
 
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
@@ -58,21 +63,41 @@ exports.requestHandler = function(request, response) {
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
   // response.end() will be the body of the response - i.e. what shows
   // up in the browser.
   //
-  // Calling .end "flushes" the response's internal buffer, forcing
+  // Calling .end 'flushes' the response's internal buffer, forcing
   // node to actually send all the data over to the client.
 
-  //response.end(JSON.stringify()); // argument was formerly "Hello, World!"
+  //response.end(JSON.stringify()); // argument was formerly 'Hello, World!'
+
+  // var rooms = {};
 
   if(request.method === 'GET'){
-    var splitURL = request.url.split('/');
+    var splitURL = request.url.split('/'); //***
+    var target = splitURL[splitURL.length-1];
+    console.log(target);
+    if(target.length === 0){ //simple GET request with no query string
+      response.writeHead(statusCode.ok, headers);
+      response.end(JSON.stringify(storage.messages))
+    }
+    if(!storage.rooms.hasOwnProperty(target)){
+      response.writeHead(statusCode.fileNotFound, headers);
+      response.end();
+    }
+
+     // if(request.url != '/classes/messages'){
+     //  response.writeHead(statusCode.fileNotFound, headers);
+     //  response.end();
+     // }
     // console.log('splitURL');
+    //
+    // Split URL, grab stuff after domain, check if in legit, if not return response.writeHead(statusCode.fileNotFound)
+    //
+    response.writeHead(statusCode.ok, headers);
     response.end(JSON.stringify(storage.messages));
   } else if (request.method === 'PUT'){
 
@@ -82,12 +107,15 @@ exports.requestHandler = function(request, response) {
       msg+=packet;
     });
     request.on('end', function(){
-      response.end(JSON.stringify(msg));
+      storage.post(msg);
     });
+    response.writeHead(statusCode.created, headers);
+    response.end(JSON.stringify(statusCode.created));
   } else if (request.method === 'DELETE'){
 
   } else if(request.method === 'OPTIONS'){
-    response.end(JSON.stringify({}))
+    response.writeHead(statusCode.created, headers)
+    response.end(JSON.stringify({}));
 
   };
 
